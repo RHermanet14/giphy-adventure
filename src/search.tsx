@@ -1,49 +1,48 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { GiphyFetch } from '@giphy/js-fetch-api';
-import { Gif, Grid } from '@giphy/react-components';
-import type { IGif } from "@giphy/js-types";
+import { Grid } from '@giphy/react-components';
+import type { GifsResult } from '@giphy/js-fetch-api';
 
-// Initialize GiphyFetch with your API key
-const gf = new GiphyFetch(process.env.REACT_APP_GIPHY_API_KEY as string);
+const gf = new GiphyFetch(import.meta.env.VITE_GIPHY_API_KEY ?? '');
 
 const GiphySearch: React.FC = () => {
-  const [gifs, setGifs] = useState<IGif[]>([]);
+  const [query, setQuery] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    const fetchGifs = async () => {
-      try {
-        // Fetch trending GIFs as an initial set
-        const trendingGifs = await gf.trending({ limit: 10 });
-        setGifs(trendingGifs.data);
-      } catch (error) {
-        console.error("Error fetching GIFs:", error);
-      }
-    };
-    fetchGifs();
-  }, []);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSearchTerm(query.trim());
+  };
 
-  // An example of a function to fetch GIFs for the <Grid> component
-  const fetchGifsForGrid = (offset: number) => gf.trending({ offset, limit: 10 });
+  const fetchGifs = useCallback(
+    (offset: number): Promise<GifsResult> => {
+      if (!searchTerm) return gf.trending({ offset, limit: 12 });
+      return gf.search(searchTerm, { offset, limit: 12 });
+    },
+    [searchTerm]
+  );
 
   return (
-    <div>
-      <h1>GIPHY Integration</h1>
-      {/* Example 1: Displaying individual fetched Gifs */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-        {gifs.map((gif) => (
-          <Gif gif={gif} width={200} key={gif.id} />
-        ))}
+    <div className="giphy-search">
+      <form onSubmit={handleSubmit} className="search-form">
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search GIFs..."
+          className="search-input"
+          autoFocus
+          aria-label="Search GIFs"
+        />
+      </form>
+      <div className="grid-wrapper" key={searchTerm || 'trending'}>
+        <Grid
+          width={900}
+          columns={3}
+          gutter={8}
+          fetchGifs={fetchGifs}
+        />
       </div>
-
-      {/* Example 2: Using the pre-built Grid component */}
-      <h2>Trending Grid</h2>
-      {/* The Grid component handles fetching and display internally */}
-      <Grid
-        width={800}
-        columns={3}
-        gutter={6}
-        fetchGifs={fetchGifsForGrid}
-      />
     </div>
   );
 };
