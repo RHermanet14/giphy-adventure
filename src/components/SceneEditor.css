@@ -1,0 +1,263 @@
+/* Match presentation view: dark stage so editing looks like presentation */
+.scene-editor {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  overflow: hidden;
+  background: #0f172a;
+}
+
+.scene-editor-empty {
+  justify-content: center;
+  color: #94a3b8;
+}
+
+.scene-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.scene-toolbar-btn {
+  padding: 8px 14px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.scene-toolbar-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.scene-stage-wrap {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+}
+
+.scene-stage-scaled {
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.scene-stage {
+  position: relative;
+  background: #0f172a;
+}
+
+.scene-guide {
+  position: absolute;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.scene-guide-vertical {
+  width: 1px;
+  height: 100%;
+  background: #22d3ee;
+  transform: translateX(-50%);
+}
+
+.scene-guide-horizontal {
+  height: 1px;
+  width: 100%;
+  background: #22d3ee;
+  transform: translateY(-50%);
+}
+
+.panel {
+  position: absolute;
+  border: 2px dashed rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(30, 41, 59, 0.8);
+  transition: border-color 0.2s, background 0.2s;
+  box-sizing: border-box;
+}
+
+.panel-drag-over {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+}
+
+.panel-drag-handle {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  font-size: 12px;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(0, 0, 0, 0.4);
+  border: none;
+  border-radius: 4px;
+  cursor: grab;
+}
+
+.panel-drag-handle:active {
+  cursor: grabbing;
+}
+
+.panel-placeholder {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.panel-gif {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+  display: block;
+}
+
+.panel-remove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  font-size: 18px;
+  line-height: 1;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.15s;
+}
+
+.panel-remove:hover {
+  opacity: 1;
+}
+
+.panel-remove-whole {
+  left: 6px;
+  right: auto;
+  font-size: 16px;
+  background: rgba(185, 28, 28, 0.8);
+}
+
+/* Text block on stage: same look as presentation, position absolute */
+.text-block-wrap.text-block-on-stage {
+  position: absolute;
+  min-height: 60px;
+  box-sizing: border-box;
+}
+
+.text-block-on-stage .text-block-drag-handle {
+  position: absolute;
+  left: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 4px 6px;
+  font-size: 11px;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(0, 0, 0, 0.3);
+  border: none;
+  border-radius: 4px;
+  cursor: grab;
+}
+
+.text-block-on-stage .text-block-drag-handle:active {
+  cursor: grabbing;
+}
+
+.text-block-on-stage .text-block,
+.text-block-on-stage .text-block-input {
+  margin-left: 28px;
+  margin-right: 32px;
+  min-height: 44px;
+  font-size: 1.25rem;
+  line-height: 1.5;
+  color: #f1f5f9;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.text-block-on-stage .text-block-input {
+  border-color: #38bdf8;
+  resize: vertical;
+}
+
+.text-block-on-stage .text-block:empty::before {
+  content: 'Click to add text';
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.text-block-on-stage .text-block-remove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  font-size: 18px;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(0, 0, 0, 0.3);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.text-block-on-stage .text-block-remove:hover {
+  background: rgba(185, 28, 28, 0.6);
+  color: #fff;
+}
+
+.text-block-align-bar {
+  position: absolute;
+  top: -32px;
+  left: 28px;
+  right: 32px;
+  display: flex;
+  gap: 4px;
+  z-index: 2;
+}
+
+.text-block-align-btn {
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.text-block-align-btn:hover {
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+}
+
+.text-block-align-btn.active {
+  background: rgba(56, 189, 248, 0.4);
+  color: #fff;
+  border-color: #38bdf8;
+}
