@@ -130,6 +130,8 @@ const PresentationView: React.FC<PresentationViewProps> = ({
           const defaultPos = getPanelDefaultPosition(i);
           const x = panel.x ?? defaultPos.x;
           const y = panel.y ?? defaultPos.y;
+          const width = panel.width ?? PANEL_WIDTH;
+          const height = panel.height ?? PANEL_HEIGHT;
           if (!panel.gif) return null;
           return (
             <div
@@ -138,8 +140,8 @@ const PresentationView: React.FC<PresentationViewProps> = ({
               style={{
                 left: x,
                 top: y,
-                width: PANEL_WIDTH,
-                height: PANEL_HEIGHT,
+                width,
+                height,
               }}
             >
               <img
@@ -155,6 +157,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({
             const defaultPos = getTextBlockDefaultPosition(i, scene);
             const x = block.x ?? defaultPos.x;
             const y = block.y ?? defaultPos.y;
+            const width = block.width ?? TEXT_BLOCK_WIDTH;
             if (!block.text) return null;
             return (
               <div
@@ -163,7 +166,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({
                 style={{
                   left: x,
                   top: y,
-                  width: TEXT_BLOCK_WIDTH,
+                  width,
                   textAlign: block.textAlign ?? 'left',
                 }}
               >

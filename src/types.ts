@@ -24,6 +24,9 @@ export interface Panel {
   /** Position on stage (pixels from top-left) */
   x?: number;
   y?: number;
+  /** Explicit size on stage; falls back to PANEL_WIDTH/HEIGHT when missing */
+  width?: number;
+  height?: number;
 }
 
 export type TextAlign = 'left' | 'center' | 'right';
@@ -34,6 +37,8 @@ export interface TextBlock {
   x?: number;
   y?: number;
   textAlign?: TextAlign;
+  /** Width of text box; falls back to TEXT_BLOCK_WIDTH when missing */
+  width?: number;
 }
 
 export interface Scene {
@@ -68,12 +73,26 @@ function getDefaultTextPosition(scene: Scene): { x: number; y: number } {
 
 export function createPanel(scene?: Scene): Panel {
   const pos = scene ? getDefaultPanelPosition(scene) : { x: 0, y: 0 };
-  return { id: createId(), gif: null, x: pos.x, y: pos.y };
+  return {
+    id: createId(),
+    gif: null,
+    x: pos.x,
+    y: pos.y,
+    width: PANEL_WIDTH,
+    height: PANEL_HEIGHT,
+  };
 }
 
 export function createTextBlock(scene?: Scene): TextBlock {
   const pos = scene ? getDefaultTextPosition(scene) : { x: 0, y: 0 };
-  return { id: createId(), text: '', x: pos.x, y: pos.y, textAlign: 'left' };
+  return {
+    id: createId(),
+    text: '',
+    x: pos.x,
+    y: pos.y,
+    textAlign: 'left',
+    width: TEXT_BLOCK_WIDTH,
+  };
 }
 
 export function createScene(): Scene {
