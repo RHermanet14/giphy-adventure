@@ -6,6 +6,7 @@ import {
   PANEL_WIDTH,
   PANEL_HEIGHT,
   TEXT_BLOCK_WIDTH,
+  TEXT_BLOCK_MIN_HEIGHT,
   getPanelDefaultPosition,
   getTextBlockDefaultPosition,
 } from '../types';
@@ -158,6 +159,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({
             const x = block.x ?? defaultPos.x;
             const y = block.y ?? defaultPos.y;
             const width = block.width ?? TEXT_BLOCK_WIDTH;
+            const height = block.height ?? TEXT_BLOCK_MIN_HEIGHT;
             if (!block.text) return null;
             return (
               <div
@@ -167,6 +169,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({
                   left: x,
                   top: y,
                   width,
+                  minHeight: height,
                   textAlign: block.textAlign ?? 'left',
                 }}
               >

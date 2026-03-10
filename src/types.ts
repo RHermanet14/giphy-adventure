@@ -39,6 +39,8 @@ export interface TextBlock {
   textAlign?: TextAlign;
   /** Width of text box; falls back to TEXT_BLOCK_WIDTH when missing */
   width?: number;
+  /** Height of text box; falls back to TEXT_BLOCK_MIN_HEIGHT when missing */
+  height?: number;
 }
 
 export interface Scene {
@@ -64,8 +66,8 @@ function getDefaultPanelPosition(scene: Scene): { x: number; y: number } {
 
 function getDefaultTextPosition(scene: Scene): { x: number; y: number } {
   const allY = [
-    ...scene.panels.map((p) => (p.y ?? 0) + PANEL_HEIGHT),
-    ...scene.textBlocks.map((t) => (t.y ?? 0) + TEXT_BLOCK_MIN_HEIGHT),
+    ...scene.panels.map((p) => (p.y ?? 0) + (p.height ?? PANEL_HEIGHT)),
+    ...scene.textBlocks.map((t) => (t.y ?? 0) + (t.height ?? TEXT_BLOCK_MIN_HEIGHT)),
   ];
   const maxY = allY.length ? Math.max(...allY) : 0;
   return { x: 0, y: maxY + STAGE_GAP };
@@ -92,6 +94,7 @@ export function createTextBlock(scene?: Scene): TextBlock {
     y: pos.y,
     textAlign: 'left',
     width: TEXT_BLOCK_WIDTH,
+    height: TEXT_BLOCK_MIN_HEIGHT,
   };
 }
 

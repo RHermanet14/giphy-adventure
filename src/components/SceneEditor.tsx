@@ -19,6 +19,7 @@ const SNAP_THRESHOLD = 8;
 const MIN_PANEL_WIDTH = 120;
 const MIN_PANEL_HEIGHT = 90;
 const MIN_TEXT_WIDTH = 160;
+const MIN_TEXT_HEIGHT = 44;
 
 function parseGifData(dataTransfer: DataTransfer): GifData | null {
   const raw = dataTransfer.getData(GIF_DATA_KEY);
@@ -51,7 +52,7 @@ function getPanelSize(panel: Panel): { width: number; height: number } {
 function getTextSize(block: TextBlock): { width: number; height: number } {
   return {
     width: block.width ?? TEXT_BLOCK_WIDTH,
-    height: TEXT_BLOCK_MIN_HEIGHT,
+    height: block.height ?? TEXT_BLOCK_MIN_HEIGHT,
   };
 }
 
@@ -169,13 +170,15 @@ const SceneEditor: React.FC<SceneEditorProps> = ({ scene, onUpdateScene }) => {
   const stageRef = useRef<HTMLDivElement>(null);
   const stageWrapRef = useRef<HTMLDivElement>(null);
   const [stageScale, setStageScale] = useState(1);
-  type ResizeDir = 'e' | 's' | 'se';
+  type ResizeDir = 'n' | 's' | 'e' | 'w' | 'nw' | 'ne' | 'sw' | 'se';
   const [resizeState, setResizeState] = useState<{
     kind: ResizeKind;
     id: string;
     dir: ResizeDir;
     startMouseX: number;
     startMouseY: number;
+    startX: number;
+    startY: number;
     startWidth: number;
     startHeight: number;
   } | null>(null);
@@ -206,37 +209,73 @@ const SceneEditor: React.FC<SceneEditorProps> = ({ scene, onUpdateScene }) => {
         const dy = stagePoint.y - resizeState.startMouseY;
 
         if (resizeState.kind === 'panel') {
+          let nextX = resizeState.startX;
+          let nextY = resizeState.startY;
           let nextWidth = resizeState.startWidth;
           let nextHeight = resizeState.startHeight;
-          if (resizeState.dir === 'e' || resizeState.dir === 'se') {
+          const { dir } = resizeState;
+          if (dir === 'e' || dir === 'se' || dir === 'ne') {
             nextWidth = Math.max(MIN_PANEL_WIDTH, resizeState.startWidth + dx);
           }
-          if (resizeState.dir === 's' || resizeState.dir === 'se') {
+          if (dir === 'w' || dir === 'sw' || dir === 'nw') {
+            const w = Math.max(MIN_PANEL_WIDTH, resizeState.startWidth - dx);
+            nextX = resizeState.startX + resizeState.startWidth - w;
+            nextWidth = w;
+          }
+          if (dir === 's' || dir === 'se' || dir === 'sw') {
             nextHeight = Math.max(
               MIN_PANEL_HEIGHT,
               resizeState.startHeight + dy,
             );
           }
+          if (dir === 'n' || dir === 'ne' || dir === 'nw') {
+            const h = Math.max(MIN_PANEL_HEIGHT, resizeState.startHeight - dy);
+            nextY = resizeState.startY + resizeState.startHeight - h;
+            nextHeight = h;
+          }
+          nextX = Math.max(0, Math.min(STAGE_WIDTH - nextWidth, nextX));
+          nextY = Math.max(0, Math.min(STAGE_HEIGHT - nextHeight, nextY));
           onUpdateScene({
             ...scene,
             panels: scene.panels.map((p) =>
               p.id === resizeState.id
-                ? { ...p, width: nextWidth, height: nextHeight }
+                ? { ...p, x: nextX, y: nextY, width: nextWidth, height: nextHeight }
                 : p,
             ),
           });
         } else {
+          let nextX = resizeState.startX;
+          let nextY = resizeState.startY;
           let nextWidth = resizeState.startWidth;
-          if (resizeState.dir === 'e' || resizeState.dir === 'se') {
-            nextWidth = Math.max(
-              MIN_TEXT_WIDTH,
-              resizeState.startWidth + dx,
+          let nextHeight = resizeState.startHeight;
+          const { dir } = resizeState;
+          if (dir === 'e' || dir === 'se' || dir === 'ne') {
+            nextWidth = Math.max(MIN_TEXT_WIDTH, resizeState.startWidth + dx);
+          }
+          if (dir === 'w' || dir === 'sw' || dir === 'nw') {
+            const w = Math.max(MIN_TEXT_WIDTH, resizeState.startWidth - dx);
+            nextX = resizeState.startX + resizeState.startWidth - w;
+            nextWidth = w;
+          }
+          if (dir === 's' || dir === 'se' || dir === 'sw') {
+            nextHeight = Math.max(
+              MIN_TEXT_HEIGHT,
+              resizeState.startHeight + dy,
             );
           }
+          if (dir === 'n' || dir === 'ne' || dir === 'nw') {
+            const h = Math.max(MIN_TEXT_HEIGHT, resizeState.startHeight - dy);
+            nextY = resizeState.startY + resizeState.startHeight - h;
+            nextHeight = h;
+          }
+          nextX = Math.max(0, Math.min(STAGE_WIDTH - nextWidth, nextX));
+          nextY = Math.max(0, Math.min(STAGE_HEIGHT - nextHeight, nextY));
           onUpdateScene({
             ...scene,
             textBlocks: scene.textBlocks.map((t) =>
-              t.id === resizeState.id ? { ...t, width: nextWidth } : t,
+              t.id === resizeState.id
+                ? { ...t, x: nextX, y: nextY, width: nextWidth, height: nextHeight }
+                : t,
             ),
           });
         }
@@ -445,6 +484,8 @@ const SceneEditor: React.FC<SceneEditorProps> = ({ scene, onUpdateScene }) => {
     kind: ResizeKind,
     id: string,
     dir: ResizeDir,
+    startX: number,
+    startY: number,
     startWidth: number,
     startHeight: number,
     clientX: number,
@@ -458,6 +499,8 @@ const SceneEditor: React.FC<SceneEditorProps> = ({ scene, onUpdateScene }) => {
       dir,
       startMouseX: pt.x,
       startMouseY: pt.y,
+      startX,
+      startY,
       startWidth,
       startHeight,
     });
@@ -540,6 +583,12 @@ const SceneEditor: React.FC<SceneEditorProps> = ({ scene, onUpdateScene }) => {
                   width: size.width,
                   height: size.height,
                 }}
+                onMouseDown={(e) => {
+                  const t = e.target as HTMLElement;
+                  if (t.closest('button') || t.closest('.panel-resize-edge') || t.closest('.panel-resize-corner')) return;
+                  e.preventDefault();
+                  startDrag('panel', panel.id, x, y, e.clientX, e.clientY);
+                }}
                 onDrop={(e) => handleDrop(e, panel.id)}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -549,6 +598,7 @@ const SceneEditor: React.FC<SceneEditorProps> = ({ scene, onUpdateScene }) => {
                   className="panel-drag-handle"
                   onMouseDown={(e) => {
                     e.preventDefault();
+                    e.stopPropagation();
                     startDrag('panel', panel.id, x, y, e.clientX, e.clientY);
                   }}
                   aria-label="Drag to move"
@@ -556,30 +606,16 @@ const SceneEditor: React.FC<SceneEditorProps> = ({ scene, onUpdateScene }) => {
                 >
                   ⋮⋮
                 </button>
-                {/* Right edge resize */}
-                <div
-                  className="panel-resize-edge panel-resize-edge-e"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    startResize('panel', panel.id, 'e', size.width, size.height, e.clientX, e.clientY);
-                  }}
-                />
-                {/* Bottom edge resize */}
-                <div
-                  className="panel-resize-edge panel-resize-edge-s"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    startResize('panel', panel.id, 's', size.width, size.height, e.clientX, e.clientY);
-                  }}
-                />
-                {/* Bottom-right corner */}
-                <div
-                  className="panel-resize-corner panel-resize-corner-se"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    startResize('panel', panel.id, 'se', size.width, size.height, e.clientX, e.clientY);
-                  }}
-                />
+                {/* Edges: n, s, e, w */}
+                <div className="panel-resize-edge panel-resize-edge-n" onMouseDown={(e) => { e.preventDefault(); startResize('panel', panel.id, 'n', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
+                <div className="panel-resize-edge panel-resize-edge-s" onMouseDown={(e) => { e.preventDefault(); startResize('panel', panel.id, 's', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
+                <div className="panel-resize-edge panel-resize-edge-e" onMouseDown={(e) => { e.preventDefault(); startResize('panel', panel.id, 'e', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
+                <div className="panel-resize-edge panel-resize-edge-w" onMouseDown={(e) => { e.preventDefault(); startResize('panel', panel.id, 'w', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
+                {/* Corners: nw, ne, sw, se */}
+                <div className="panel-resize-corner panel-resize-corner-nw" onMouseDown={(e) => { e.preventDefault(); startResize('panel', panel.id, 'nw', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
+                <div className="panel-resize-corner panel-resize-corner-ne" onMouseDown={(e) => { e.preventDefault(); startResize('panel', panel.id, 'ne', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
+                <div className="panel-resize-corner panel-resize-corner-sw" onMouseDown={(e) => { e.preventDefault(); startResize('panel', panel.id, 'sw', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
+                <div className="panel-resize-corner panel-resize-corner-se" onMouseDown={(e) => { e.preventDefault(); startResize('panel', panel.id, 'se', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
                 <button
                   type="button"
                   className="panel-remove panel-remove-whole"
@@ -629,6 +665,13 @@ const SceneEditor: React.FC<SceneEditorProps> = ({ scene, onUpdateScene }) => {
                   left: displayX,
                   top: displayY,
                   width: size.width,
+                  minHeight: size.height,
+                }}
+                onMouseDown={(e) => {
+                  const t = e.target as HTMLElement;
+                  if (t.closest('button') || t.closest('.text-resize-edge') || t.closest('.text-resize-corner') || t.closest('.text-block-align-bar')) return;
+                  e.preventDefault();
+                  startDrag('text', block.id, x, y, e.clientX, e.clientY);
                 }}
               >
                 <button
@@ -636,6 +679,7 @@ const SceneEditor: React.FC<SceneEditorProps> = ({ scene, onUpdateScene }) => {
                   className="text-block-drag-handle"
                   onMouseDown={(e) => {
                     e.preventDefault();
+                    e.stopPropagation();
                     startDrag('text', block.id, x, y, e.clientX, e.clientY);
                   }}
                   aria-label="Drag to move"
@@ -701,22 +745,16 @@ const SceneEditor: React.FC<SceneEditorProps> = ({ scene, onUpdateScene }) => {
                 >
                   ×
                 </button>
-                {/* Right edge resize for text */}
-                <div
-                  className="text-resize-edge text-resize-edge-e"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    startResize('text', block.id, 'e', size.width, size.height, e.clientX, e.clientY);
-                  }}
-                />
-                {/* Bottom-right corner for text (behaves like right edge for width) */}
-                <div
-                  className="text-resize-corner text-resize-corner-se"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    startResize('text', block.id, 'se', size.width, size.height, e.clientX, e.clientY);
-                  }}
-                />
+                {/* Edges: n, s, e, w */}
+                <div className="text-resize-edge text-resize-edge-n" onMouseDown={(e) => { e.preventDefault(); startResize('text', block.id, 'n', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
+                <div className="text-resize-edge text-resize-edge-s" onMouseDown={(e) => { e.preventDefault(); startResize('text', block.id, 's', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
+                <div className="text-resize-edge text-resize-edge-e" onMouseDown={(e) => { e.preventDefault(); startResize('text', block.id, 'e', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
+                <div className="text-resize-edge text-resize-edge-w" onMouseDown={(e) => { e.preventDefault(); startResize('text', block.id, 'w', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
+                {/* Corners: nw, ne, sw, se */}
+                <div className="text-resize-corner text-resize-corner-nw" onMouseDown={(e) => { e.preventDefault(); startResize('text', block.id, 'nw', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
+                <div className="text-resize-corner text-resize-corner-ne" onMouseDown={(e) => { e.preventDefault(); startResize('text', block.id, 'ne', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
+                <div className="text-resize-corner text-resize-corner-sw" onMouseDown={(e) => { e.preventDefault(); startResize('text', block.id, 'sw', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
+                <div className="text-resize-corner text-resize-corner-se" onMouseDown={(e) => { e.preventDefault(); startResize('text', block.id, 'se', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
               </div>
             );
           })}
