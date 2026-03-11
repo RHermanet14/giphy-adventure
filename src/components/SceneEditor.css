@@ -236,6 +236,28 @@
   min-height: 60px;
   box-sizing: border-box;
   cursor: move;
+  display: flex;
+  flex-direction: column;
+}
+
+.text-block-on-stage .text-block-content-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  margin-left: 28px;
+  margin-right: 32px;
+  display: flex;
+  flex-direction: column;
+}
+
+.text-block-on-stage .text-block-content-wrap .text-block,
+.text-block-on-stage .text-block-content-wrap .text-block-input {
+  flex: 1;
+  min-height: 44px;
+}
+
+.text-block-on-stage .text-block-content-wrap .text-block-input {
+  resize: none;
 }
 
 .text-block-on-stage .text-block-drag-handle {
@@ -269,6 +291,12 @@
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 8px;
   padding: 10px 12px;
+}
+
+.text-block-on-stage .text-block-content-wrap .text-block,
+.text-block-on-stage .text-block-content-wrap .text-block-input {
+  margin-left: 0;
+  margin-right: 0;
 }
 
 .text-block-on-stage .text-block-input {
@@ -403,4 +431,46 @@
   background: rgba(56, 189, 248, 0.4);
   color: #fff;
   border-color: #38bdf8;
+}
+
+.text-block-format-bar {
+  position: absolute;
+  top: -60px;
+  left: 28px;
+  right: 32px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 2;
+}
+
+.text-block-font-select {
+  padding: 4px 8px;
+  font-size: 12px;
+  color: #e2e8f0;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  cursor: pointer;
+  max-width: 140px;
+}
+
+.text-block-size-input {
+  width: 48px;
+  padding: 4px 6px;
+  font-size: 12px;
+  color: #e2e8f0;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.text-block-color-input {
+  width: 28px;
+  height: 28px;
+  padding: 2px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  cursor: pointer;
 }

@@ -154,6 +154,7 @@ type ResizeKind = 'panel' | 'text';
 
 const SceneEditor: React.FC<SceneEditorProps> = ({ scene, onUpdateScene }) => {
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [dragState, setDragState] = useState<{
     kind: DragKind;
     id: string;
@@ -449,6 +450,18 @@ const SceneEditor: React.FC<SceneEditorProps> = ({ scene, onUpdateScene }) => {
     });
   };
 
+  const setTextBlockStyle = (
+    blockId: string,
+    updates: Partial<Pick<TextBlock, 'fontFamily' | 'fontSize' | 'color'>>
+  ) => {
+    onUpdateScene({
+      ...scene,
+      textBlocks: scene.textBlocks.map((t) =>
+        t.id === blockId ? { ...t, ...updates } : t
+      ),
+    });
+  };
+
   useEffect(() => {
     const wrap = stageWrapRef.current;
     if (!wrap) return;
@@ -665,11 +678,11 @@ const SceneEditor: React.FC<SceneEditorProps> = ({ scene, onUpdateScene }) => {
                   left: displayX,
                   top: displayY,
                   width: size.width,
-                  minHeight: size.height,
+                  height: size.height,
                 }}
                 onMouseDown={(e) => {
                   const t = e.target as HTMLElement;
-                  if (t.closest('button') || t.closest('.text-resize-edge') || t.closest('.text-resize-corner') || t.closest('.text-block-align-bar')) return;
+                  if (t.closest('button') || t.closest('.text-resize-edge') || t.closest('.text-resize-corner') || t.closest('.text-block-align-bar') || t.closest('.text-block-format-bar') || t.closest('.text-block-content-wrap')) return;
                   e.preventDefault();
                   startDrag('text', block.id, x, y, e.clientX, e.clientY);
                 }}
@@ -693,7 +706,10 @@ const SceneEditor: React.FC<SceneEditorProps> = ({ scene, onUpdateScene }) => {
                       <button
                         type="button"
                         className={`text-block-align-btn ${(block.textAlign ?? 'left') === 'left' ? 'active' : ''}`}
-                        onClick={() => setTextBlockAlign(block.id, 'left')}
+                        onClick={() => {
+                          setTextBlockAlign(block.id, 'left');
+                          setTimeout(() => textareaRef.current?.focus(), 0);
+                        }}
                         title="Align left"
                         aria-label="Align left"
                       >
@@ -702,7 +718,10 @@ const SceneEditor: React.FC<SceneEditorProps> = ({ scene, onUpdateScene }) => {
                       <button
                         type="button"
                         className={`text-block-align-btn ${(block.textAlign ?? 'left') === 'center' ? 'active' : ''}`}
-                        onClick={() => setTextBlockAlign(block.id, 'center')}
+                        onClick={() => {
+                          setTextBlockAlign(block.id, 'center');
+                          setTimeout(() => textareaRef.current?.focus(), 0);
+                        }}
                         title="Align center"
                         aria-label="Align center"
                       >
@@ -711,30 +730,102 @@ const SceneEditor: React.FC<SceneEditorProps> = ({ scene, onUpdateScene }) => {
                       <button
                         type="button"
                         className={`text-block-align-btn ${(block.textAlign ?? 'left') === 'right' ? 'active' : ''}`}
-                        onClick={() => setTextBlockAlign(block.id, 'right')}
+                        onClick={() => {
+                          setTextBlockAlign(block.id, 'right');
+                          setTimeout(() => textareaRef.current?.focus(), 0);
+                        }}
                         title="Align right"
                         aria-label="Align right"
                       >
                         R
                       </button>
                     </div>
+                    <div className="text-block-format-bar">
+                      <select
+                        className="text-block-font-select"
+                        value={block.fontFamily ?? 'system-ui, -apple-system, sans-serif'}
+                        onChange={(e) => {
+                          setTextBlockStyle(block.id, { fontFamily: e.target.value });
+                          setTimeout(() => textareaRef.current?.focus(), 0);
+                        }}
+                        title="Font"
+                        aria-label="Font"
+                      >
+                        <option value="system-ui, -apple-system, sans-serif">System</option>
+                        <option value="Georgia, serif">Georgia</option>
+                        <option value="'Times New Roman', Times, serif">Times New Roman</option>
+                        <option value="Arial, Helvetica, sans-serif">Arial</option>
+                        <option value="'Courier New', monospace">Courier New</option>
+                        <option value="Impact, sans-serif">Impact</option>
+                        <option value="'Comic Sans MS', cursive">Comic Sans</option>
+                      </select>
+                      <input
+                        type="number"
+                        className="text-block-size-input"
+                        min={10}
+                        max={120}
+                        value={block.fontSize ?? 20}
+                        onChange={(e) => {
+                          const n = parseInt(e.target.value, 10);
+                          if (!Number.isNaN(n)) {
+                            setTextBlockStyle(block.id, { fontSize: Math.max(10, Math.min(120, n)) });
+                            setTimeout(() => textareaRef.current?.focus(), 0);
+                          }
+                        }}
+                        title="Font size"
+                        aria-label="Font size"
+                      />
+                      <input
+                        type="color"
+                        className="text-block-color-input"
+                        value={block.color ?? '#f1f5f9'}
+                        onChange={(e) => {
+                          setTextBlockStyle(block.id, { color: e.target.value });
+                          setTimeout(() => textareaRef.current?.focus(), 0);
+                        }}
+                        title="Text color"
+                        aria-label="Text color"
+                      />
+                    </div>
+                    <div className="text-block-content-wrap">
                     <textarea
+                      ref={textareaRef}
                       className="text-block-input"
                       value={block.text}
                       onChange={(e) => setTextBlockContent(block.id, e.target.value)}
-                      onBlur={() => setEditingTextId(null)}
+                      onBlur={(e) => {
+                        const wrapper = (e.currentTarget as HTMLElement).closest('.text-block-wrap');
+                        setTimeout(() => {
+                          if (!wrapper?.contains(document.activeElement)) {
+                            setEditingTextId(null);
+                          }
+                        }, 0);
+                      }}
                       autoFocus
                       placeholder="Type something…"
-                      style={{ textAlign: block.textAlign ?? 'left' }}
+                      style={{
+                        textAlign: block.textAlign ?? 'left',
+                        fontFamily: block.fontFamily ?? 'system-ui, -apple-system, sans-serif',
+                        fontSize: `${block.fontSize ?? 20}px`,
+                        color: block.color ?? '#f1f5f9',
+                      }}
                     />
+                    </div>
                   </>
                 ) : (
+                  <div className="text-block-content-wrap">
                   <div
                     className="text-block"
                     onClick={() => setEditingTextId(block.id)}
-                    style={{ textAlign: block.textAlign ?? 'left' }}
+                    style={{
+                      textAlign: block.textAlign ?? 'left',
+                      fontFamily: block.fontFamily ?? 'system-ui, -apple-system, sans-serif',
+                      fontSize: `${block.fontSize ?? 20}px`,
+                      color: block.color ?? '#f1f5f9',
+                    }}
                   >
                     {block.text || 'Click to add text'}
+                  </div>
                   </div>
                 )}
                 <button
@@ -746,15 +837,15 @@ const SceneEditor: React.FC<SceneEditorProps> = ({ scene, onUpdateScene }) => {
                   ×
                 </button>
                 {/* Edges: n, s, e, w */}
-                <div className="text-resize-edge text-resize-edge-n" onMouseDown={(e) => { e.preventDefault(); startResize('text', block.id, 'n', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
-                <div className="text-resize-edge text-resize-edge-s" onMouseDown={(e) => { e.preventDefault(); startResize('text', block.id, 's', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
-                <div className="text-resize-edge text-resize-edge-e" onMouseDown={(e) => { e.preventDefault(); startResize('text', block.id, 'e', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
-                <div className="text-resize-edge text-resize-edge-w" onMouseDown={(e) => { e.preventDefault(); startResize('text', block.id, 'w', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
+                <div className="text-resize-edge text-resize-edge-n" onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); startResize('text', block.id, 'n', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
+                <div className="text-resize-edge text-resize-edge-s" onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); startResize('text', block.id, 's', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
+                <div className="text-resize-edge text-resize-edge-e" onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); startResize('text', block.id, 'e', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
+                <div className="text-resize-edge text-resize-edge-w" onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); startResize('text', block.id, 'w', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
                 {/* Corners: nw, ne, sw, se */}
-                <div className="text-resize-corner text-resize-corner-nw" onMouseDown={(e) => { e.preventDefault(); startResize('text', block.id, 'nw', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
-                <div className="text-resize-corner text-resize-corner-ne" onMouseDown={(e) => { e.preventDefault(); startResize('text', block.id, 'ne', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
-                <div className="text-resize-corner text-resize-corner-sw" onMouseDown={(e) => { e.preventDefault(); startResize('text', block.id, 'sw', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
-                <div className="text-resize-corner text-resize-corner-se" onMouseDown={(e) => { e.preventDefault(); startResize('text', block.id, 'se', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
+                <div className="text-resize-corner text-resize-corner-nw" onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); startResize('text', block.id, 'nw', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
+                <div className="text-resize-corner text-resize-corner-ne" onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); startResize('text', block.id, 'ne', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
+                <div className="text-resize-corner text-resize-corner-sw" onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); startResize('text', block.id, 'sw', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
+                <div className="text-resize-corner text-resize-corner-se" onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); startResize('text', block.id, 'se', displayX, displayY, size.width, size.height, e.clientX, e.clientY); }} />
               </div>
             );
           })}

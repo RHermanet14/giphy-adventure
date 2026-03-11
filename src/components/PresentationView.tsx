@@ -169,8 +169,11 @@ const PresentationView: React.FC<PresentationViewProps> = ({
                   left: x,
                   top: y,
                   width,
-                  minHeight: height,
+                  height,
                   textAlign: block.textAlign ?? 'left',
+                  fontFamily: block.fontFamily ?? 'system-ui, -apple-system, sans-serif',
+                  fontSize: `${block.fontSize ?? 20}px`,
+                  color: block.color ?? '#f1f5f9',
                 }}
               >
                 {block.text}

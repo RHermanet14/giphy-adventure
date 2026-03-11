@@ -41,6 +41,9 @@ export interface TextBlock {
   width?: number;
   /** Height of text box; falls back to TEXT_BLOCK_MIN_HEIGHT when missing */
   height?: number;
+  fontFamily?: string;
+  fontSize?: number;
+  color?: string;
 }
 
 export interface Scene {
@@ -95,6 +98,9 @@ export function createTextBlock(scene?: Scene): TextBlock {
     textAlign: 'left',
     width: TEXT_BLOCK_WIDTH,
     height: TEXT_BLOCK_MIN_HEIGHT,
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+    fontSize: 20,
+    color: '#f1f5f9',
   };
 }
 
