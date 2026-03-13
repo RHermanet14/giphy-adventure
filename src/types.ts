@@ -50,6 +50,8 @@ export interface Scene {
   id: string;
   panels: Panel[];
   textBlocks: TextBlock[];
+  /** Optional background image for this scene (data URL or remote URL) */
+  backgroundImage?: string | null;
 }
 
 export function createId(): string {
@@ -109,6 +111,7 @@ export function createScene(): Scene {
     id: createId(),
     panels: [],
     textBlocks: [],
+    backgroundImage: null,
   };
 }
 

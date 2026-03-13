@@ -536,6 +536,33 @@ const SceneEditor: React.FC<SceneEditorProps> = ({ scene, onUpdateScene }) => {
     e.currentTarget.classList.remove('panel-drag-over');
   };
 
+  const handleBackgroundFileChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+    if (!scene) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result === 'string') {
+        onUpdateScene({
+          ...scene,
+          backgroundImage: result,
+        });
+      }
+    };
+    reader.readAsDataURL(file);
+    // Allow re-selecting the same file
+    e.target.value = '';
+  };
+
+  const handleClearBackground = () => {
+    if (!scene) return;
+    onUpdateScene({
+      ...scene,
+      backgroundImage: null,
+    });
+  };
+
   return (
     <div className="scene-editor">
       <div className="scene-toolbar">
@@ -545,6 +572,24 @@ const SceneEditor: React.FC<SceneEditorProps> = ({ scene, onUpdateScene }) => {
         <button type="button" className="scene-toolbar-btn" onClick={addTextBlock}>
           Add text
         </button>
+        <div className="scene-toolbar-spacer" />
+        <label className="scene-toolbar-btn scene-toolbar-file-btn">
+          <span>Background image</span>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleBackgroundFileChange}
+          />
+        </label>
+        {scene.backgroundImage && (
+          <button
+            type="button"
+            className="scene-toolbar-btn"
+            onClick={handleClearBackground}
+          >
+            Clear background
+          </button>
+        )}
       </div>
 
       <div ref={stageWrapRef} className="scene-stage-wrap">
@@ -563,6 +608,10 @@ const SceneEditor: React.FC<SceneEditorProps> = ({ scene, onUpdateScene }) => {
               height: STAGE_HEIGHT,
               transform: `scale(${stageScale})`,
               transformOrigin: 'top left',
+            backgroundImage: scene.backgroundImage ? `url(${scene.backgroundImage})` : undefined,
+            backgroundSize: scene.backgroundImage ? 'cover' : undefined,
+            backgroundPosition: scene.backgroundImage ? 'center' : undefined,
+            backgroundRepeat: scene.backgroundImage ? 'no-repeat' : undefined,
             }}
           >
           {snapGuides.vertical !== null && (

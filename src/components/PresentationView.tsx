@@ -125,6 +125,10 @@ const PresentationView: React.FC<PresentationViewProps> = ({
               height: STAGE_HEIGHT,
               transform: `scale(${scale})`,
               transformOrigin: 'top left',
+              backgroundImage: scene.backgroundImage ? `url(${scene.backgroundImage})` : undefined,
+              backgroundSize: scene.backgroundImage ? 'cover' : undefined,
+              backgroundPosition: scene.backgroundImage ? 'center' : undefined,
+              backgroundRepeat: scene.backgroundImage ? 'no-repeat' : undefined,
             }}
           >
         {scene.panels.map((panel, i) => {

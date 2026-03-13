@@ -34,6 +34,22 @@
   transition: background 0.15s;
 }
 
+.scene-toolbar-spacer {
+  flex: 1;
+}
+
+.scene-toolbar-file-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.scene-toolbar-file-btn input[type='file'] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
 .scene-toolbar-btn:hover {
   background: rgba(255, 255, 255, 0.15);
 }
