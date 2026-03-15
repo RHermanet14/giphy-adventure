@@ -146,13 +146,14 @@ function snapPosition(
 
 interface SceneEditorProps {
   scene: Scene | null;
+  allScenes: Scene[];
   onUpdateScene: (scene: Scene) => void;
 }
 
 type DragKind = 'panel' | 'text';
 type ResizeKind = 'panel' | 'text';
 
-const SceneEditor: React.FC<SceneEditorProps> = ({ scene, onUpdateScene }) => {
+const SceneEditor: React.FC<SceneEditorProps> = ({ scene, allScenes, onUpdateScene }) => {
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [dragState, setDragState] = useState<{
@@ -432,6 +433,15 @@ const SceneEditor: React.FC<SceneEditorProps> = ({ scene, onUpdateScene }) => {
     });
   };
 
+  const setPanelTargetScene = (panelId: string, targetSceneId: string | null) => {
+    onUpdateScene({
+      ...scene,
+      panels: scene.panels.map((p) =>
+        p.id === panelId ? { ...p, targetSceneId } : p
+      ),
+    });
+  };
+
   const setTextBlockContent = (blockId: string, text: string) => {
     onUpdateScene({
       ...scene,
@@ -647,7 +657,7 @@ const SceneEditor: React.FC<SceneEditorProps> = ({ scene, onUpdateScene }) => {
                 }}
                 onMouseDown={(e) => {
                   const t = e.target as HTMLElement;
-                  if (t.closest('button') || t.closest('.panel-resize-edge') || t.closest('.panel-resize-corner')) return;
+                  if (t.closest('button') || t.closest('.panel-resize-edge') || t.closest('.panel-resize-corner') || t.closest('.panel-link-control')) return;
                   e.preventDefault();
                   startDrag('panel', panel.id, x, y, e.clientX, e.clientY);
                 }}
@@ -655,6 +665,27 @@ const SceneEditor: React.FC<SceneEditorProps> = ({ scene, onUpdateScene }) => {
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
               >
+                {allScenes.length > 1 && (
+                  <div className="panel-link-control">
+                    <label className="panel-link-label">
+                      On click:
+                      <select
+                        value={panel.targetSceneId ?? ''}
+                        onChange={(e) =>
+                          setPanelTargetScene(panel.id, e.target.value || null)
+                        }
+                      >
+                        <option value="">Nothing</option>
+                        {allScenes.map((s, index) => (
+                          <option key={s.id} value={s.id}>
+                            Scene {index + 1}
+                            {s.id === scene.id ? ' (this)' : ''}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                )}
                 <button
                   type="button"
                   className="panel-drag-handle"

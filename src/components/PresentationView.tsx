@@ -18,6 +18,7 @@ interface PresentationViewProps {
   onPrev: () => void;
   onNext: () => void;
   onExit: () => void;
+  onJumpToScene: (index: number) => void;
 }
 
 const PresentationView: React.FC<PresentationViewProps> = ({
@@ -26,6 +27,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({
   onPrev,
   onNext,
   onExit,
+  onJumpToScene,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
@@ -138,16 +140,27 @@ const PresentationView: React.FC<PresentationViewProps> = ({
           const width = panel.width ?? PANEL_WIDTH;
           const height = panel.height ?? PANEL_HEIGHT;
           if (!panel.gif) return null;
+          const targetIndex =
+            panel.targetSceneId != null
+              ? scenes.findIndex((s) => s.id === panel.targetSceneId)
+              : -1;
+          const clickable = targetIndex >= 0;
           return (
             <div
               key={panel.id}
-              className="presentation-panel"
+              className={
+                'presentation-panel' +
+                (clickable ? ' presentation-panel-clickable' : '')
+              }
               style={{
                 left: x,
                 top: y,
                 width,
                 height,
               }}
+              onClick={
+                clickable ? () => onJumpToScene(targetIndex) : undefined
+              }
             >
               <img
                 src={panel.gif.fullUrl}

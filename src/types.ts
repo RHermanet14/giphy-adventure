@@ -27,6 +27,8 @@ export interface Panel {
   /** Explicit size on stage; falls back to PANEL_WIDTH/HEIGHT when missing */
   width?: number;
   height?: number;
+   /** Optional navigation target when this panel is clicked in presentation */
+  targetSceneId?: string | null;
 }
 
 export type TextAlign = 'left' | 'center' | 'right';

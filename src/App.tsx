@@ -81,6 +81,14 @@ function App() {
     if (scene) setCurrentSceneId(scene.id);
   }, [scenes, presentationIndex]);
 
+  const handlePresentationJump = useCallback(
+    (index: number) => {
+      if (index < 0 || index >= scenes.length) return;
+      setPresentationIndex(index);
+    },
+    [scenes.length],
+  );
+
   const handleUndo = useCallback(() => {
     if (historyIndex <= 0) return;
     const prev = historyIndex - 1;
@@ -103,6 +111,7 @@ function App() {
         onPrev={handlePresentationPrev}
         onNext={handlePresentationNext}
         onExit={handlePresentationExit}
+        onJumpToScene={handlePresentationJump}
       />
     );
   }
@@ -121,7 +130,11 @@ function App() {
         canRedo={historyIndex >= 0 && historyIndex < history.length - 1}
       />
       <div className="app-main">
-        <SceneEditor scene={currentScene} onUpdateScene={handleUpdateScene} />
+        <SceneEditor
+          scene={currentScene}
+          allScenes={scenes}
+          onUpdateScene={handleUpdateScene}
+        />
       </div>
       <GifSearchPanel />
     </div>
