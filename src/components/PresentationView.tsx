@@ -201,10 +201,6 @@ const PresentationView: React.FC<PresentationViewProps> = ({
           </div>
         </div>
       </div>
-
-      <div className="presentation-footer">
-        {currentIndex + 1} / {scenes.length}
-      </div>
     </div>
   );
 };

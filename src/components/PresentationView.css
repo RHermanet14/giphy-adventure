@@ -120,11 +120,3 @@
   word-break: break-word;
 }
 
-.presentation-footer {
-  position: absolute;
-  bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 14px;
-  color: #94a3b8;
-}
